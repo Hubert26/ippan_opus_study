@@ -118,3 +118,5 @@ esm_cortisol_data_aggregated <- esm_cortisol_data_by_date %>%
 names(WWA_all_screening_data)[1] <- "Participant"
 esm_cortisol_data_aggregated <- merge(esm_cortisol_data_aggregated, WWA_all_screening_data[, c("Participant", "Group", "ASRS_suma")], by = "Participant", all = TRUE)
 esm_cortisol_data_aggregated <- na.omit(esm_cortisol_data_aggregated)
+
+write_sav(esm_cortisol_data_aggregated, "out/esm_cortisol_data_aggregated.sav")
