@@ -1,7 +1,7 @@
 library(haven)
 #install.packages("remotes")
 #remotes::install_github("wviechtb/esmpack")
-library(esmpack)
+#library(esmpack)
 #install.packages("vtable")
 library(vtable)
 #install.packages("mediation")
@@ -317,8 +317,11 @@ baza <- baza %>%
 
 
 #PLES by meas - esm_cortisol
+
 selected_columns <- c("as2", "as3", "ta1", "ta2", "ta3", "h1", "h2", "h3", "d1", "d2", "d3", "d4", "d5")
-baza$esm_PLEs_meas <- esmpack::combitems(selected_columns, baza, fun = "sum")
+baza <- baza %>%
+  mutate(esm_PLEs_meas = rowSums(select(., all_of(selected_columns)), na.rm = TRUE))
+
 
 #PLES by week - esm_cortisol
 baza <- baza %>%
@@ -524,5 +527,5 @@ mediation_data <- left_join(mediation_data, distinct(select(baza, id, as_mean_we
 
 #ZAPISYWANIE
 #write_sav(baza, "out/baza.sav")
-write_sav(mediation_data, "out/mediation_data.sav")
+#write_sav(mediation_data, "out/mediation_data.sav")
 

@@ -1,7 +1,7 @@
 library(haven)
 #install.packages("remotes")
 #remotes::install_github("wviechtb/esmpack")
-library(esmpack)
+#library(esmpack)
 #install.packages("vtable")
 library(vtable)
 #install.packages("mediation")
@@ -167,9 +167,106 @@ esm_cortisol_data <- anti_join(esm_cortisol_data,
 rm(duplikaty)
 rm(wiersze_duplikatow)
 
+#SPRAWDZENIE ILOŚĆ NAN W KOLUMNACH
+# Liczenie ilości wartości NA w każdej kolumnie
+na_counts <- colSums(is.na(esm_cortisol_data))
+# Konwersja wyniku do dataframe
+na_counts_df <- as.data.frame(t(na_counts))
+# Ustawienie nazw kolumn
+colnames(na_counts_df) <- colnames(esm_cortisol_data)
+
+#BAZA
+
+baza <- data.frame(
+  id = esm_cortisol_data$Participant,
+  obs = esm_cortisol_data$Trigger_counter,
+  beeptime = as.numeric(hour(esm_cortisol_data$Trigger_time) * 60 + minute(esm_cortisol_data$Trigger_time)),
+  resptime = as.numeric(hour(esm_cortisol_data$Form_start_time) * 60 + minute(esm_cortisol_data$Form_start_time)),
+  resphour = as.numeric(hour(esm_cortisol_data$Form_start_time) + minute(esm_cortisol_data$Form_start_time) / 60),
+  finishtime = as.numeric(hour(esm_cortisol_data$Form_finish_time) * 60 + minute(esm_cortisol_data$Form_finish_time)),
+  cortisoltime = as.numeric(hour(esm_cortisol_data$Cortisol_time) * 60 + minute(esm_cortisol_data$Cortisol_time)),
+  cortlevel = esm_cortisol_data$Cortisol_ng_ml * 100,
+  sleeplength = esm_cortisol_data$sleep_hours_item_1972,
+  sleep_quality = esm_cortisol_data$sleep_evaluation_item_a2,
+  Form = esm_cortisol_data$Form
+) %>%
+  mutate(
+    eventstress = ifelse(Form == "PORANEK", esm_cortisol_data$Importatnt_event_item_a3, esm_cortisol_data$Importatnt_event_item_1),
+    caffsmok = ifelse(Form == "PORANEK", esm_cortisol_data$caffeine_tobacco_item_2109, esm_cortisol_data$caffeine_tobacco_item_1858),
+    eatdrink = ifelse(Form == "PORANEK", esm_cortisol_data$food_soft_drink_item_2133, esm_cortisol_data$food_soft_drink_item_1901),
+    alcohol = ifelse(Form == "PORANEK", esm_cortisol_data$alcohol_item_2157, esm_cortisol_data$alcohol_item_1931),
+    body = ifelse(Form == "PORANEK", esm_cortisol_data$body_image_item_a7, esm_cortisol_data$body_image_item_5),
+    rumination = ifelse(Form == "PORANEK", esm_cortisol_data$ruminations_item_2041, esm_cortisol_data$ruminations_item_1832),
+    actstress1 = ifelse(Form == "PORANEK", esm_cortisol_data$rather_do_something_else_a8, esm_cortisol_data$rather_do_something_else_item_6),
+    actstress2 = ifelse(Form == "PORANEK", esm_cortisol_data$difficult_event_item_a9, esm_cortisol_data$difficult_event_item_7),
+    actstress2 = ifelse(Form == "PORANEK", esm_cortisol_data$nice_event_item_a10, esm_cortisol_data$nice_event_item_8),
+    socstress1a = ifelse(Form == "PORANEK", esm_cortisol_data$being_alone_item_a11_1, esm_cortisol_data$being_alone_item_9_1),
+    socstress1b = ifelse(Form == "PORANEK", esm_cortisol_data$being_with_family_item_a11_2, esm_cortisol_data$being_with_family_item_9_2),
+    socstress1c = ifelse(Form == "PORANEK", esm_cortisol_data$being_with_partner_item_a11_3, esm_cortisol_data$being_with_partner_item_9_3),
+    socstress1d = ifelse(Form == "PORANEK", esm_cortisol_data$being_with_friends_item_a11_4, esm_cortisol_data$being_with_friends_item_9_4),
+    socstress1e = ifelse(Form == "PORANEK", esm_cortisol_data$being_with_strangers_item_a11_5, esm_cortisol_data$being_with_strangers_item_9_5),
+    socstress1f = ifelse(Form == "PORANEK", esm_cortisol_data$being_with_co_workers_item_a11_6, esm_cortisol_data$being_with_co_workers_item_9_6),
+    socstress1 = ifelse(Form == "PORANEK", esm_cortisol_data$rather_be_alone_item_a12, esm_cortisol_data$rather_be_alone_item_10),
+    socstress2 = ifelse(Form == "PORANEK", esm_cortisol_data$enjoyable_being_with_people_item_a13, esm_cortisol_data$enjoyable_being_with_people_item_11),
+    outsider = ifelse(Form == "PORANEK", esm_cortisol_data$odludek_item_a14, esm_cortisol_data$odludek_item_12),
+    helpless1 = ifelse(Form == "PORANEK", esm_cortisol_data$unsuspected_event_item_a15, esm_cortisol_data$unsuspected_event_item_13),
+    helpless2 = ifelse(Form == "PORANEK", esm_cortisol_data$loss_of_control_item_a16, esm_cortisol_data$loss_of_control_item_14),
+    selfeff1 = ifelse(Form == "PORANEK", esm_cortisol_data$coping_problems_item_a17, esm_cortisol_data$problems_coping_item_15),
+    selfeff2 = ifelse(Form == "PORANEK", esm_cortisol_data$things_going_my_way_item_a18, esm_cortisol_data$things_going_my_way_item_16),
+    areastress = ifelse(Form == "PORANEK", esm_cortisol_data$unpleasant_to_be_here_item_a19, esm_cortisol_data$unpleasant_to_be_here_item_17),
+    anxious = ifelse(Form == "PORANEK", esm_cortisol_data$feel_anxious_item_a20, esm_cortisol_data$feel_anxious_item_18),
+    down = ifelse(Form == "PORANEK", esm_cortisol_data$feel_depressed_item_a21, esm_cortisol_data$feel_depressed_item_19),
+    lonely = ifelse(Form == "PORANEK", esm_cortisol_data$feel_alone_item_a22, esm_cortisol_data$feel_alone_item_20),
+    insecure = ifelse(Form == "PORANEK", esm_cortisol_data$dont_feel_safe_item_a23, esm_cortisol_data$dont_feel_safe_item_21),
+    annoyed = ifelse(Form == "PORANEK", esm_cortisol_data$feel_irritated_a24, esm_cortisol_data$feel_irritated_item_22),
+    as = ifelse(Form == "PORANEK", esm_cortisol_data$attention_attracts_item_a25, esm_cortisol_data$attention_attracts_item_23),
+    as2 = ifelse(Form == "PORANEK", esm_cortisol_data$meaning_item_a26, esm_cortisol_data$meaning_item_24),
+    as3 = ifelse(Form == "PORANEK", esm_cortisol_data$noticing_item_a27, esm_cortisol_data$noticing_item_25),
+    ta1 = ifelse(Form == "PORANEK", esm_cortisol_data$unpleasant_anticipation_item_a28, esm_cortisol_data$unpleasant_anticipation_item_26),
+    ta2 = ifelse(Form == "PORANEK", esm_cortisol_data$carefulness_item_a29, esm_cortisol_data$carefulness_item_27),
+    ta3 = ifelse(Form == "PORANEK", esm_cortisol_data$details_item_a30, esm_cortisol_data$details_item_28),
+    h1 = ifelse(Form == "PORANEK", esm_cortisol_data$hearing_thoughts_item_a31, esm_cortisol_data$hearing_thoughts_item_29),
+    h2 = ifelse(Form == "PORANEK", esm_cortisol_data$voices_item_a32, esm_cortisol_data$voices_item_30),
+    h3 = ifelse(Form == "PORANEK", esm_cortisol_data$hallucinations_item_a33, esm_cortisol_data$hallucinations_item_31),
+    d1 = ifelse(Form == "PORANEK", esm_cortisol_data$invisible_force_item_a34, esm_cortisol_data$invisible_force_item_32),
+    d2 = ifelse(Form == "PORANEK", esm_cortisol_data$hidden_meaning_item_a35, esm_cortisol_data$hidden_meaning_item_33),
+    d3 = ifelse(Form == "PORANEK", esm_cortisol_data$unreal_experience_item_a36, esm_cortisol_data$unreal_experience_item_34),
+    d4 = ifelse(Form == "PORANEK", esm_cortisol_data$thought_control_item_a37, esm_cortisol_data$thought_control_item_35),
+    d5 = ifelse(Form == "PORANEK", esm_cortisol_data$get_rid_of_thoughts_item_38, esm_cortisol_data$get_rid_of_thoughts_item_36),
+  )
+
+#SPRAWDZENIE ILOŚĆ NAN W KOLUMNACH
+# Liczenie ilości wartości NA w każdej kolumnie
+na_counts <- colSums(is.na(baza))
+# Konwersja wyniku do dataframe
+na_counts_baza <- as.data.frame(t(na_counts))
+# Ustawienie nazw kolumn
+colnames(na_counts_baza) <- colnames(baza)
+
+# Dodanie drugiego wiersza z odsetkiem wartości NA
+na_percentage <- na_counts / nrow(baza)*100
+na_counts_baza <- rbind(na_counts_baza, as.data.frame(t(na_percentage)))
+
+# Ustawienie nazw wierszy
+rownames(na_counts_baza) <- c("NaN_Counts", "NaN_Percentage")
+
+na_counts_baza <- na_counts_baza %>%
+  select(as, as2, as3, ta1, ta2, ta3, h1, h2, h3, d1, d2, d3, d4, d5, rumination, anxious, down, lonely, insecure, annoyed)
+
+# Konwersja wiersza "NaN_Percentage" do typu numeric
+na_counts_baza["NaN_Percentage", ] <- as.numeric(na_counts_baza["NaN_Percentage", ])
+
+# Obliczenie średniej z wiersza NaN_Percentage
+mean_nan_percentage <- mean(as.numeric(na_counts_baza["NaN_Percentage", ]), na.rm = TRUE)
+
+# Wyświetlenie średniej
+print(mean_nan_percentage)
+
+#write_sav(na_counts_baza, "out_cleaning/na_counts_baza.sav")
+#write_sav(baza, "out_cleaning/baza_alpha.sav")
 
 #ZAPISYWANIE
-write_sav(esm_cortisol_data, "out_cleaning/clear_esm_cortisol_data.sav")
+#write_sav(esm_cortisol_data, "out_cleaning/clear_esm_cortisol_data.sav")
 
 
 
@@ -194,7 +291,7 @@ tmp_wrongID <- screening_data[!grepl("^(WWA[0-9]|PUM[0-9]|WRO[0-9])", screening_
 
 
 #ZAPISYWANIE
-write_sav(screening_data, "out_cleaning/clear_screening_data.sav")
+#write_sav(screening_data, "out_cleaning/clear_screening_data.sav")
 
 
 
@@ -259,12 +356,56 @@ tmp_wrongID <- FKBP5_wywiad_data[!grepl("^(WWA[0-9]|PUM[0-9][0-9]K|PUM[0-9][0-9]
 
 
 #ZAPISYWANIE
-write_sav(FKBP5_wywiad_data, "out_cleaning/clear_FKBP5_wywiad_data.sav")
+#write_sav(FKBP5_wywiad_data, "out_cleaning/clear_FKBP5_wywiad_data.sav")
+
+#M, SD
+#Unusual_thinking
+selected_columns <- names(FKBP5_wywiad_data)[grep("^CAARMS_Unusual_thinking_contents_[0-9]", names(FKBP5_wywiad_data))]
+print(selected_columns)
+FKBP5_wywiad_data$utc <- rowSums(FKBP5_wywiad_data[selected_columns] == 1)
+baza <- baza %>%
+  left_join(select(FKBP5_wywiad_data, ID, utc), by = c("id" = "ID"), relationship = "many-to-many")
+
+#speech_disorganization
+selected_columns <- names(FKBP5_wywiad_data)[grep("^CAARMS_speech_disorganization_[0-9]_subj", names(FKBP5_wywiad_data))]
+print(selected_columns)
+FKBP5_wywiad_data$sdis <- rowSums(FKBP5_wywiad_data[selected_columns] == 1)
+baza <- baza %>%
+  left_join(select(FKBP5_wywiad_data, ID, sdis), by = c("id" = "ID"), relationship = "many-to-many")
+
+#other_thinking_content
+selected_columns <- names(FKBP5_wywiad_data)[grep("^CAARMS_other_thinking_content_[0-9]", names(FKBP5_wywiad_data))]
+print(selected_columns)
+FKBP5_wywiad_data$otc <- rowSums(FKBP5_wywiad_data[selected_columns] == 1)
+baza <- baza %>%
+  left_join(select(FKBP5_wywiad_data, ID, otc), by = c("id" = "ID"), relationship = "many-to-many")
 
 
+#hallucinations
+selected_columns <- names(FKBP5_wywiad_data)[grep("^CAARMS_hallucinations_[0-9]", names(FKBP5_wywiad_data))]
+print(selected_columns)
+FKBP5_wywiad_data$hal <- rowSums(FKBP5_wywiad_data[selected_columns] == 1)
+baza <- baza %>%
+  left_join(select(FKBP5_wywiad_data, ID, hal), by = c("id" = "ID"), relationship = "many-to-many")
 
 
+# Obliczanie średnich i odchyleń standardowych
+mean_sd <- function(x) {
+  c(mean = mean(x, na.rm = TRUE), sd = sd(x, na.rm = TRUE))
+}
 
+# Stworzenie dataframe ze średnimi i odchyleniami standardowymi
+results <- data.frame(
+  Variable = c("utc", "sdis", "otc", "hal"),
+  Mean = c(mean_sd(baza$utc)["mean"], 
+           mean_sd(baza$sdis)["mean"], 
+           mean_sd(baza$otc)["mean"], 
+           mean_sd(baza$hal)["mean"]),
+  SD = c(mean_sd(baza$utc)["sd"], 
+         mean_sd(baza$sdis)["sd"], 
+         mean_sd(baza$otc)["sd"], 
+         mean_sd(baza$hal)["sd"])
+)
 
 #FKBP5_BASELINE_DATA
 FKBP5_baseline_data <- read_sav("data_cleaning/FKBP5+-+baseline_May+2,+2024_10.56.sav")
@@ -330,4 +471,4 @@ tmp_wrongID <- FKBP5_baseline_data[!grepl("^(WWA[0-9]|PUM[0-9][0-9]K|PUM[0-9][0-
 
 
 #ZAPISYWANIE
-write_sav(FKBP5_baseline_data, "out_cleaning/clear_FKBP5_baseline_data.sav")
+#write_sav(FKBP5_baseline_data, "out_cleaning/clear_FKBP5_baseline_data.sav")
