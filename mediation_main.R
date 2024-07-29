@@ -100,6 +100,12 @@ print(diff_screening_all)
 
 unikatowe_ID <- unique(c(FKBP5_baseline_data$ID, FKBP5_wywiad_data$ID, screening_data$ID))
 
+
+
+
+
+
+################### 
 mediation_data <- data.frame(ID = FKBP5_wywiad_data$ID)
 
 #ZABURZENIA
@@ -356,6 +362,13 @@ attr(tmp_mediation_data$CAA_sum, "label") <- "CAARMS total"
 
 attr(tmp_mediation_data$Depression_family, "label") <- "Depression history in family"
 attr(tmp_mediation_data$Schizophrenia_family, "label") <- "Schizofrenia history in family"
+
+
+
+#screening_data
+
+
+
 
 
 #ZAPISYWANIE
