@@ -21,13 +21,17 @@ library(purrr)
 #version
 
 # Wczytanie danych z pliku .sav
-esm_cortisol_data <- read_sav("data/data_main/clear_esm_cortisol_data_20240729_162811.sav")
+esm_cortisol_data <- read_sav("data/data_main/clear_esm_cortisol_data_20240923_185638.sav")
 FKBP5_wywiad_data <- read_sav("data/data_main/clear_FKBP5_wywiad_data_20240729_162549.sav")
 FKBP5_baseline_data <- read_sav("data/data_main/clear_FKBP5_baseline_data_20240729_161840.sav")
 screening_data <- read_sav("data/data_main/clear_screening_data_20240729_150623.sav")
 
 
-#DUPLIKATY
+# ================================================
+# CHECKING
+# ================================================
+
+#----------DUPLIKATY----------
 #screening_data
 screening_data$ID <- toupper(screening_data$ID)
 tmp1 <- subset(screening_data, duplicated(ID) | duplicated(ID, fromLast = TRUE))
@@ -46,7 +50,7 @@ rm(tmp2)
 rm(tmp3)
 
 
-#SCAL ID
+#----------ID----------
 # Pobranie nazw kolumn dla każdej ramki danych
 ID_names_baseline <- FKBP5_baseline_data$ID
 ID_names_wywiad <- FKBP5_wywiad_data$ID
@@ -127,8 +131,9 @@ all_base <- data.frame(
   ID = unique_ID)
 
 
-##################################
-#esm_cortisol_base
+# ================================================
+# ESM_CORISOL_DATA
+# ================================================
 
 esm_cortisol_base <- data.frame(
   ID = esm_cortisol_data$Participant,
@@ -383,10 +388,9 @@ esm_cortisol_base <- esm_cortisol_base %>%
 
 
 
-
-##################################
-#FKBP5_wywiad_data
-
+# ================================================
+# FKBP5_wywiad_data
+# ================================================
 
 FKBP5_wywiad_selected <- FKBP5_wywiad_data %>%
   select(ID, 
@@ -621,9 +625,10 @@ rm(menstruation_date_summary)
 
 
 
-##################################
-#FKBP5_BASELINE_DATA
-#TEC
+# ================================================
+# FKBP5_BASELINE_DATA 
+# ================================================
+
 selected_columns <- grep("^TEC", names(FKBP5_baseline_data), value = TRUE)
 all_base <- left_join(all_base, select(FKBP5_baseline_data, ID, all_of(selected_columns)), by = "ID")
 
@@ -946,9 +951,9 @@ all_base <- all_base %>%
 
 
 
-
-##################################
-#SCREENING_DATA 
+# ================================================
+# SCREENING_DATA 
+# ================================================
 
 #age, sex, status
 all_base <- all_base %>%
@@ -1080,7 +1085,7 @@ network_analysis_data <- network_analysis_data %>%
 # Generowanie aktualnej daty i czasu w odpowiednim formacie
 current_time <- format(Sys.time(), "%Y%m%d_%H%M%S")
 # Tworzenie nazwy pliku z aktualną datą i czasem
-filename <- paste0("out/network_analysis_data_", current_time, ".sav")
+filename <- paste0("data/out/network_analysis_data_", current_time, ".sav")
 # Zapis danych
 write_sav(network_analysis_data, filename)
 

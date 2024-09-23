@@ -27,8 +27,10 @@ library(janitor)
 #version
 
 
-##############
-#esm_cortisol_data
+
+# ================================================
+# esm_cortisol_data
+# ================================================
 
 # Wczytanie danych z pliku
 
@@ -46,8 +48,14 @@ read_all_sheets <- function(file_path) {
 
 # Wczytanie danych ze wszystkich arkuszy z dwóch plików
 esm_cortisol_data_WRO <- read_all_sheets("data/data_cleaning/esm-cortisol-WRO_20240715.xlsx")
-esm_cortisol_data_SZCZ <- read_all_sheets("data/data_cleaning/esm-cortisol-SZCZ_20240715.xlsx")
-esm_cortisol_data_WWA <- read_excel("data/data_cleaning/esm-cortisol-WWA_20240719.xlsx")
+esm_cortisol_data_SZCZ <- read_all_sheets("data/data_cleaning/esm-cortisol-SZCZ_20240923.xlsx")
+esm_cortisol_data_WWA <- read_excel("data/data_cleaning/esm-cortisol-WWA_20240917.xlsx")
+
+# Usunięcie kolumn z nazwą arkusza
+esm_cortisol_data_SZCZ <- esm_cortisol_data_SZCZ %>%
+  select(-sheet)
+esm_cortisol_data_WRO <- esm_cortisol_data_WRO %>%
+  select(-sheet)
 
 # Usunięcie duplikatów na podstawie wszystkich kolumn
 esm_cortisol_data_WRO <- esm_cortisol_data_WRO %>% 
@@ -57,15 +65,17 @@ esm_cortisol_data_SZCZ <- esm_cortisol_data_SZCZ %>%
 esm_cortisol_data_WWA <- esm_cortisol_data_WWA %>% 
   distinct()
 
-esm_cortisol_data_SZCZ <- esm_cortisol_data_SZCZ %>%
-  select(-sheet)
-esm_cortisol_data_WRO <- esm_cortisol_data_WRO %>%
-  select(-sheet)
+
 # Przekonwertowanie całego dataframe na tekst
 esm_cortisol_data_WWA <- esm_cortisol_data_WWA %>%
   mutate_all(as.character)
+esm_cortisol_data_SZCZ <- esm_cortisol_data_SZCZ %>%
+  mutate_all(as.character)
+esm_cortisol_data_WRO <- esm_cortisol_data_WRO %>%
+  mutate_all(as.character)
 
 
+#----------STANDARYZACJA KOLUMN----------
 # Pobranie nazw kolumn dla każdej ramki danych
 col_names_WWA <- colnames(esm_cortisol_data_WWA)
 col_names_WRO <- colnames(esm_cortisol_data_WRO)
@@ -86,8 +96,38 @@ print("Różnice między esm_cortisol_data_WWA a esm_cortisol_data_WRO:")
 print(diff_WWA_WRO)
 print(diff_WRO_WWA)
 
-#zamiana nazw kolumn
+print("Różnice między esm_cortisol_data_WWA a esm_cortisol_data_SZCZ:")
+print(diff_WWA_SZCZ)
+print(diff_SZCZ_WWA)
+
+print("Różnice między esm_cortisol_data_WRO a esm_cortisol_data_SZCZ:")
+print(diff_WRO_SZCZ)
+print(diff_SZCZ_WRO)
+
+#zamiana nazw kolumn 
 esm_cortisol_data_WWA <- dplyr::rename(esm_cortisol_data_WWA, Bad_interval_over_20_min_or_missing = `Bad interval >20 min or missing`)
+
+print("----------CHECKING COLUMNS----------")
+
+# Pobranie nazw kolumn dla każdej ramki danych
+col_names_WWA <- colnames(esm_cortisol_data_WWA)
+col_names_WRO <- colnames(esm_cortisol_data_WRO)
+col_names_SZCZ <- colnames(esm_cortisol_data_SZCZ)
+
+# Znalezienie różnic między kolumnami
+diff_WWA_WRO <- setdiff(col_names_WWA, col_names_WRO)
+diff_WRO_WWA <- setdiff(col_names_WRO, col_names_WWA)
+
+diff_WWA_SZCZ <- setdiff(col_names_WWA, col_names_SZCZ)
+diff_SZCZ_WWA <- setdiff(col_names_SZCZ, col_names_WWA)
+
+diff_WRO_SZCZ <- setdiff(col_names_WRO, col_names_SZCZ)
+diff_SZCZ_WRO <- setdiff(col_names_SZCZ, col_names_WRO)
+
+# Wyświetlenie różnic
+print("Różnice między esm_cortisol_data_WWA a esm_cortisol_data_WRO:")
+print(diff_WWA_WRO)
+print(diff_WRO_WWA)
 
 print("Różnice między esm_cortisol_data_WWA a esm_cortisol_data_SZCZ:")
 print(diff_WWA_SZCZ)
@@ -111,20 +151,21 @@ rm(col_names_SZCZ)
 
 
 #dont_feel_safe_item_a23
-esm_cortisol_data_WWA$dont_feel_safe_item_a23 <- as.character(esm_cortisol_data_WWA$dont_feel_safe_item_a23)
-esm_cortisol_data_WRO$dont_feel_safe_item_a23 <- as.character(esm_cortisol_data_WRO$dont_feel_safe_item_a23)
-esm_cortisol_data_SZCZ$dont_feel_safe_item_a23 <- as.character(esm_cortisol_data_SZCZ$dont_feel_safe_item_a23)
+#esm_cortisol_data_WWA$dont_feel_safe_item_a23 <- as.character(esm_cortisol_data_WWA$dont_feel_safe_item_a23)
+#esm_cortisol_data_WRO$dont_feel_safe_item_a23 <- as.character(esm_cortisol_data_WRO$dont_feel_safe_item_a23)
+#esm_cortisol_data_SZCZ$dont_feel_safe_item_a23 <- as.character(esm_cortisol_data_SZCZ$dont_feel_safe_item_a23)
 
 
-# Scalenie trzech baz danych w jedną
+#----------SCALANIE----------
 esm_cortisol_data <- bind_rows(esm_cortisol_data_WWA, esm_cortisol_data_WRO, esm_cortisol_data_SZCZ)
 
-
+#----------WRONG ID----------
 tmp_wrongID <- esm_cortisol_data[!grepl("^(WWA[0-9]|PUM[0-9][0-9]K|PUM[0-9][0-9]B|WRO[0-9])", esm_cortisol_data$Participant), ]
+
 rm(tmp_wrongID)
 
 
-
+#----------DATA FORMATING----------
 #Trigger_date
 esm_cortisol_data <- esm_cortisol_data %>%
   mutate(Trigger_date = as.Date(Trigger_date))
@@ -154,7 +195,6 @@ esm_cortisol_data <- esm_cortisol_data %>%
   mutate(Form_upload_time = as_hms(sub(".*\\s", "", Form_upload_time)))
 
 
-
 #Cortisol_time
 value <- as.double(esm_cortisol_data$Cortisol_time)*24
 hours <- as.integer(floor(value))
@@ -177,7 +217,6 @@ rm(hms_values)
 rm(decimal_part)
 
 
-
 #Cortisol_ng_ml
 # Zamiana przecinków na kropki
 esm_cortisol_data$Cortisol_ng_ml <- gsub(",", ".", esm_cortisol_data$Cortisol_ng_ml)
@@ -185,11 +224,12 @@ esm_cortisol_data$Cortisol_ng_ml <- gsub(",", ".", esm_cortisol_data$Cortisol_ng
 esm_cortisol_data$Cortisol_ng_ml <- as.double(esm_cortisol_data$Cortisol_ng_ml)
 
 
-#duplikaty
+#----------DUPLIKATYx2----------
 # Usunięcie duplikatów na podstawie wszystkich kolumn
 esm_cortisol_data <- esm_cortisol_data %>% 
   distinct()
 
+# Usunięcie duplikatów na podstawie "Participant", "Trigger_date", "Trigger_time"
 duplikaty <- duplicated(esm_cortisol_data[, c("Participant", "Trigger_date", "Trigger_time")]) | duplicated(esm_cortisol_data[, c("Participant", "Trigger_date", "Trigger_time")], fromLast = TRUE)
 wiersze_duplikatow <- esm_cortisol_data[duplikaty, ]
 wiersze_duplikatow <- wiersze_duplikatow %>%
@@ -205,9 +245,7 @@ rm(duplikaty)
 rm(wiersze_duplikatow)
 
 
-
-###################
-#KORTYZOL
+#----------UZUPEŁNIANIE NIEZAREJESTROWANYCH POMIARÓW----------
 esm_cortisol_data_by_date <- esm_cortisol_data %>% 
   group_by(Participant, Trigger_date) %>%
   filter(n() == 6) %>% #Filtruje grupy, pozostawiając tylko te, które mają dokładnie 6 obserwacji
@@ -401,8 +439,10 @@ write_sav(esm_cortisol_data, filename)
 
 
 
+# ================================================
+# SCREENING_DATA
+# ================================================
 
-#SCREENING_DATA
 screening_data <- read_sav("data/data_cleaning/ALL_screening_20240426.sav")
 
 
@@ -431,8 +471,10 @@ write_sav(screening_data, filename)
 
 
 
-
+# ================================================
 # FKBP5_WYWIAD_DATA
+# ================================================
+
 # Sprawdzenie bieżącego katalogu roboczego
 print(getwd())
 
@@ -514,8 +556,10 @@ write_sav(FKBP5_wywiad_data, filename)
 
 
 
+# ================================================
+# FKBP5_BASELINE_DATA
+# ================================================
 
-#FKBP5_BASELINE_DATA
 FKBP5_baseline_data <- read_sav("data/data_cleaning/FKBP5+-+baseline_July+12,+2024_16.04.sav")
 
 
