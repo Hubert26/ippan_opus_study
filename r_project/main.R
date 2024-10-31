@@ -21,7 +21,7 @@ library(purrr)
 #version
 
 # Wczytanie danych z pliku .sav
-esm_cortisol_data <- read_sav("data/data_main/clear_esm_cortisol_data_20240923_185638.sav")
+esm_cortisol_data <- read_sav("data/data_main/clear_esm_cortisol_data_20241031_162536.sav")
 FKBP5_wywiad_data <- read_sav("data/data_main/clear_FKBP5_wywiad_data_20240729_162549.sav")
 FKBP5_baseline_data <- read_sav("data/data_main/clear_FKBP5_baseline_data_20240729_161840.sav")
 screening_data <- read_sav("data/data_main/clear_screening_data_20240729_150623.sav")

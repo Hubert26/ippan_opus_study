@@ -47,9 +47,9 @@ read_all_sheets <- function(file_path) {
 }
 
 # Wczytanie danych ze wszystkich arkuszy z dwóch plików
-esm_cortisol_data_WRO <- read_all_sheets("data/data_cleaning/esm-cortisol-WRO_20240715.xlsx")
-esm_cortisol_data_SZCZ <- read_all_sheets("data/data_cleaning/esm-cortisol-SZCZ_20240923.xlsx")
-esm_cortisol_data_WWA <- read_excel("data/data_cleaning/esm-cortisol-WWA_20240917.xlsx")
+esm_cortisol_data_WRO <- read_all_sheets("data/data_cleaning/esm-cortisol-WRO_20241021.xlsx")
+esm_cortisol_data_SZCZ <- read_all_sheets("data/data_cleaning/esm-cortisol-SZCZ_20241029.xlsx")
+esm_cortisol_data_WWA <- read_excel("data/data_cleaning/esm-cortisol-WWA_20241021.xlsx")
 
 # Usunięcie kolumn z nazwą arkusza
 esm_cortisol_data_SZCZ <- esm_cortisol_data_SZCZ %>%
@@ -240,6 +240,22 @@ esm_cortisol_data <- anti_join(esm_cortisol_data,
                                wiersze_duplikatow %>% 
                                  filter(!(Missing == "NA" | is.na(Missing))),
                                by = c("Participant", "Trigger_date", "Trigger_time", "Missing"))
+
+duplikaty <- duplicated(esm_cortisol_data[, c("Participant", "Trigger_date", "Trigger_time")]) | duplicated(esm_cortisol_data[, c("Participant", "Trigger_date", "Trigger_time")], fromLast = TRUE)
+wiersze_duplikatow <- esm_cortisol_data[duplikaty, ]
+wiersze_duplikatow <- wiersze_duplikatow %>%
+  arrange(Participant, Trigger_date, Trigger_time)
+
+# Usunięcie wierszy z esm_cortisol_data, które mają duplikaty z wiersze_duplikatow gdzie kolumna "Cortisol_ng_ml" jest NA
+esm_cortisol_data <- anti_join(esm_cortisol_data, 
+                               wiersze_duplikatow %>% 
+                                 filter((Cortisol_ng_ml == "NA" | is.na(Cortisol_ng_ml))),
+                               by = c("Participant", "Trigger_date", "Trigger_time", "Cortisol_ng_ml"))
+# Sprawdzenie duplikatów
+duplikaty <- duplicated(esm_cortisol_data[, c("Participant", "Trigger_date", "Trigger_time")]) | duplicated(esm_cortisol_data[, c("Participant", "Trigger_date", "Trigger_time")], fromLast = TRUE)
+wiersze_duplikatow <- esm_cortisol_data[duplikaty, ]
+wiersze_duplikatow <- wiersze_duplikatow %>%
+  arrange(Participant, Trigger_date, Trigger_time)
 
 rm(duplikaty)
 rm(wiersze_duplikatow)
