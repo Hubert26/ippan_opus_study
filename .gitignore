@@ -52,8 +52,8 @@ rsconnect/
 **/.spyproject/
 
 # Data input and output
-r_project/data
-python_project/data
+**/r_project/data
+**/python_project/data
 
 # SPSS
-spss_files
+**/spss_files
